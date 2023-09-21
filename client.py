@@ -41,7 +41,6 @@ class ClientFlower(fl.client.NumPyClient):
 		#os.makedirs(os.path.dirname(filename), exist_ok=True)
 		#with open(filename, 'a') as arquivo:
 		#	arquivo.write(f"")
-
 		
 		return self.model.get_weights(), len(self.x_train), {}
 
