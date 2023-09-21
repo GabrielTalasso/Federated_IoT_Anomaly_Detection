@@ -93,8 +93,6 @@ scaler = MinMaxScaler()
 X_train = scaler.fit_transform(train)
 X_test = scaler.transform(test)
 
-
-
 # reshape inputs for LSTM [samples, timesteps, features]
 X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
 print("Training data shape:", X_train.shape)
@@ -110,8 +108,6 @@ model.summary()
 # fit the model to the data
 nb_epochs = 10
 batch_size = 10
-
-
 
 history = model.fit(X_train, X_train, epochs=nb_epochs, batch_size=batch_size,
                     validation_split=0.05).history

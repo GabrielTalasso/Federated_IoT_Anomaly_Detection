@@ -39,9 +39,6 @@ def load_dataset(dataset_name, cid):
         train = merged_data['2004-02-12 10:52:39': '2004-02-15 12:52:39']
         test = merged_data['2004-02-15 12:52:39':]
 
-        train_fft = np.fft.fft(train)
-        test_fft = np.fft.fft(test)
-
         train = pd.DataFrame(train[f'Bearing {cid+1}'])
         test  = pd.DataFrame( test[f'Bearing {cid+1}'])
 
