@@ -1,6 +1,7 @@
 import flwr as fl
 import pandas as pd
 import numpy as np
+import os
 import tensorflow as tf
 from model import get_model
 from load_dataset import load_dataset
@@ -34,21 +35,22 @@ class ClientFlower(fl.client.NumPyClient):
 		nb_epochs = 1
 		batch_size = 10
 		model.fit(self.x_train, self.x_train, epochs=nb_epochs, batch_size=batch_size,
-						validation_split=0.05).history
+						validation_split=0.05)
+		
+		#filename = f"local_logs/.csv"
+		#os.makedirs(os.path.dirname(filename), exist_ok=True)
+		#with open(filename, 'a') as arquivo:
+		#	arquivo.write(f"")
+
 		
 		return self.model.get_weights(), len(self.x_train), {}
 
 
 	def evaluate(self, parameters, config):
 		self.model.set_weights(parameters)
-		#loss, accuracy = self.modelo.evaluate(self.x_teste, self.y_teste)
-
 		X_pred = self.model.predict(self.x_train)
 		X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
-		#X_pred = pd.DataFrame(X_pred, columns=self.x_train.columns)
-		#X_pred.index = self.x_train.index
 
-		#scored = pd.DataFrame(index=self.x_train.index)
 		Xtrain = self.x_train.reshape(self.x_train.shape[0], self.x_train.shape[2])
 		loss = np.mean(np.abs(X_pred-Xtrain)) 
 

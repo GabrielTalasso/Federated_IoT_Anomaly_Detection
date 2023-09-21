@@ -30,19 +30,6 @@ class FedServer(fl.server.strategy.FedAvg):
     def __init__(self):      
         super().__init__()
         
-    def evaluate(
-        self, server_round: int, parameters: Parameters
-    ) -> Optional[Tuple[float, Dict[str, Scalar]]]:
-        """Evaluate model parameters using an evaluation function."""
-        if self.evaluate_fn is None:
-            # No evaluation function provided
-            return None
-        parameters_ndarrays = parameters_to_ndarrays(parameters)
-        eval_res = self.evaluate_fn(server_round, parameters_ndarrays, {})
-        if eval_res is None:
-            return None
-        loss, metrics = eval_res
-        return loss, metrics
     
     def configure_fit(
         self, server_round: int, parameters: Parameters, client_manager: ClientManager):
