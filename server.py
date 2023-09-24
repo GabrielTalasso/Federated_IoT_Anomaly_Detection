@@ -58,7 +58,7 @@ class FedServer(fl.server.strategy.FedAvg):
             return []
 
         # Parameters and config
-        config = {}
+        config = {"server_round":server_round}
         
         if self.on_evaluate_config_fn is not None:
             # Custom evaluation config function provided

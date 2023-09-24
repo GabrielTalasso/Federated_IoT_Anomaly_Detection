@@ -16,17 +16,18 @@ except FileNotFoundError:
 	pass
 
 n_clients = 4
-n_rounds = 10
+n_rounds = 20
+dataset = 'bearing'
+model_name = 'LSTM'
+anomaly_round = 15
 
 def funcao_cliente(cid):
-	return ClientFlower(int(cid))
+	return ClientFlower(int(cid), dataset = dataset, model_name=model_name, anomaly_round=anomaly_round)
 
 history = fl.simulation.start_simulation(client_fn=funcao_cliente, 
 								num_clients=n_clients, 
 								strategy= FedServer(),
 								config=fl.server.ServerConfig(n_rounds))
-
-
 
 with open('./results/history_simulation.pickle', 'wb') as file:
     pickle.dump(history, file, protocol=pickle.HIGHEST_PROTOCOL)

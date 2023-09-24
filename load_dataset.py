@@ -9,14 +9,11 @@ import matplotlib.pyplot as plt
 
 from numpy.random import seed
 import tensorflow as tf
-#tf.logging.set_verbosity(tf.logging.ERROR)
-
+#tf.logging.set_verbosity(tf.logging.ERROR
 
 from keras.layers import Input, Dropout, Dense, LSTM, TimeDistributed, RepeatVector
 from keras.models import Model
 from keras import regularizers
-
-from model import get_model
 
 def load_dataset(dataset_name, cid):
 # load, average and merge sensor samples
