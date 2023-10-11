@@ -58,6 +58,14 @@ def load_dataset(dataset_name, cid):
 
         train = data.head(9000).values
         test = data.tail(1400).values
+
+        #for anomaly:
+        data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/0.csv', sep = ';')
+        data.index = pd.to_datetime(data['datetime'])
+        data.drop('datetime', axis = 1, inplace=True)
+        test = data[data['anomaly'] == 1]
+        test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
+        test = test.values
         
         X_train = train.reshape(train.shape[0], 1, train.shape[1])
         X_test = test.reshape(test.shape[0], 1, test.shape[1])
