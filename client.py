@@ -37,8 +37,8 @@ class ClientFlower(fl.client.NumPyClient):
 		self.model.set_weights(parameters)
 
 		self.model.compile(optimizer='adam', loss='mae')
-		nb_epochs = 1
-		batch_size = 10
+		nb_epochs = 20
+		batch_size = 100
 		self.model.fit(self.x_train, self.x_train, epochs=nb_epochs, batch_size=batch_size,
 						validation_split=0.05)
 		

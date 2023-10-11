@@ -48,4 +48,18 @@ def load_dataset(dataset_name, cid):
         X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
         X_test = X_test.reshape(X_test.shape[0], 1, X_test.shape[1])
 
+
+    if dataset_name == 'SKAB': 
+
+        data = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv', sep = ';')
+
+        data.index = pd.to_datetime(data['datetime'])
+        data.drop('datetime', axis = 1, inplace=True)
+
+        train = data.head(9000).values
+        test = data.tail(1400).values
+        
+        X_train = train.reshape(train.shape[0], 1, train.shape[1])
+        X_test = test.reshape(test.shape[0], 1, test.shape[1])
+
     return X_train, X_test

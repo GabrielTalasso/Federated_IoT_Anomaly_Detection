@@ -17,7 +17,7 @@ except FileNotFoundError:
 
 n_clients = 4
 n_rounds = 20
-dataset = 'bearing'
+dataset = 'SKAB'
 model_name = 'LSTM'
 anomaly_round = 15
 
