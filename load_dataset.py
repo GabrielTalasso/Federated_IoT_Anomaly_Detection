@@ -60,11 +60,11 @@ def load_dataset(dataset_name, cid, n_clients):
         size = len(data)
         int_cid = int(cid)
 
-        #train = data
+        train = data.reset_index().iloc[int(int_cid*size/(n_clients+1)) : int((int_cid+1)*size/(n_clients+1))].set_index('datetime').values
+        test =  data.reset_index().iloc[int((int_cid+1)*size/(n_clients+1)) : ].set_index('datetime').values
 
-
-        train = data.head(9000).values
-        test = data.tail(1400).values
+        #train = data.head(9000).values
+        #test = data.tail(1400).values
 
         #for anomaly:
         data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve2/0.csv', sep = ';')
