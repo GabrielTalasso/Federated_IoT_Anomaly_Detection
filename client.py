@@ -8,11 +8,12 @@ from load_dataset import load_dataset
 
 class ClientFlower(fl.client.NumPyClient):
 
-	def __init__(self, cid, dataset, model_name, anomaly_round):
+	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients):
 		self.cid = cid
 		self.dataset = dataset
 		self.model_name = model_name
 		self.anomaly_round = anomaly_round
+		self.n_clients = n_clients
 
 		self.x_train, self.x_test= self.load_data()
 		self.model = self.create_model(self.model_name)
@@ -25,7 +26,7 @@ class ClientFlower(fl.client.NumPyClient):
 		return model
 
 	def load_data(self):
-		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid)
+		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid, n_clients = self.n_clients)
 		return x_train, x_test
 
 	def get_parameters(self, config):

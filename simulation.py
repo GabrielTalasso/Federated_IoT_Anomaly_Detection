@@ -19,7 +19,7 @@ n_clients = 10
 n_rounds = 20
 dataset = 'SKAB'
 model_name = 'LSTM'
-anomaly_round = 2
+anomaly_round = 18
 
 def funcao_cliente(cid):
 	return ClientFlower(int(cid), dataset = dataset, model_name=model_name, anomaly_round=anomaly_round)

@@ -15,7 +15,7 @@ from keras.layers import Input, Dropout, Dense, LSTM, TimeDistributed, RepeatVec
 from keras.models import Model
 from keras import regularizers
 
-def load_dataset(dataset_name, cid):
+def load_dataset(dataset_name, cid, n_clients):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':
@@ -56,14 +56,21 @@ def load_dataset(dataset_name, cid):
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
 
+
+        size = len(data)
+        int_cid = int(cid)
+
+        #train = data
+
+
         train = data.head(9000).values
         test = data.tail(1400).values
 
         #for anomaly:
-        data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/0.csv', sep = ';')
+        data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve2/0.csv', sep = ';')
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
-        test = data[data['anomaly'] == 1]
+        test = data[data['anomaly'] == 0]
         test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
         test = test.values
         
