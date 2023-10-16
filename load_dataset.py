@@ -70,7 +70,7 @@ def load_dataset(dataset_name, cid, n_clients):
         data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve2/0.csv', sep = ';')
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
-        test = data[data['anomaly'] == 0]
+        test = data[data['anomaly'] == 1]
         test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
         test = test.values
         
