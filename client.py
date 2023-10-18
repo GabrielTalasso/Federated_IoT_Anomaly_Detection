@@ -33,17 +33,31 @@ class ClientFlower(fl.client.NumPyClient):
 		return self.model.get_weights()
 
 	def fit(self, parameters, config):
+		
 		server_round = int(config["server_round"])
-		print(config["server_round"])
 		self.model.set_weights(parameters)
 
 		self.model.compile(optimizer='adam', loss='mse')
 		n_epochs = 5
 		batch_size = 8
-		print('----------------------------', self.x_train.shape)
-		self.model.fit(self.x_train, self.x_train,
+
+		if config['server_round'] == self.anomaly_round:
+			hist = self.model.fit(self.x_test, self.x_test,
 				 	epochs = n_epochs, batch_size = batch_size,
 					validation_split=0.05)
+			
+		#print('----------------------------', self.x_train.shape)
+		else:
+			hist = self.model.fit(self.x_train, self.x_train,
+						epochs = n_epochs, batch_size = batch_size,
+						validation_split=0.05)
+		
+		loss = np.mean(hist.history['loss'])
+		
+		filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"
+		os.makedirs(os.path.dirname(filename), exist_ok=True)
+		with open(filename, 'a') as arquivo:
+			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
 		
 		
 		return self.model.get_weights(), len(self.x_train), {}
@@ -60,8 +74,7 @@ class ClientFlower(fl.client.NumPyClient):
 		#Xtrain = self.x_train.reshape(self.x_train.shape[0], self.x_train.shape[2])
 		
 		loss = np.mean(np.mean(np.abs(X_pred-Xtrain), axis=1) )
-		
-
+		loss = np.mean(((X_pred-Xtrain)**2))
 
 		if config['server_round'] == self.anomaly_round:
 			X_pred = self.model.predict(self.x_test)
@@ -69,11 +82,12 @@ class ClientFlower(fl.client.NumPyClient):
 			Xtest = self.x_test
 			#Xtest = self.x_test.reshape(self.x_test.shape[0], self.x_test.shape[2])
 			loss = np.mean(np.mean(np.abs(X_pred-Xtest), axis=1)) 
+			loss = np.mean(((X_pred-Xtest)**2))
 
 
-		filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"
-		os.makedirs(os.path.dirname(filename), exist_ok=True)
-		with open(filename, 'a') as arquivo:
-			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
+		# filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"
+		# os.makedirs(os.path.dirname(filename), exist_ok=True)
+		# with open(filename, 'a') as arquivo:
+		# 	arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
 
 		return loss, len(self.x_test), {"mean_loss": loss}
