@@ -37,11 +37,13 @@ class ClientFlower(fl.client.NumPyClient):
 		print(config["server_round"])
 		self.model.set_weights(parameters)
 
-		self.model.compile(optimizer='adam', loss='mae')
-		nb_epochs = 20
-		batch_size = 100
-		self.model.fit(self.x_train, self.x_train, epochs=nb_epochs, batch_size=batch_size,
-						validation_split=0.05)
+		self.model.compile(optimizer='adam', loss='mse')
+		n_epochs = 5
+		batch_size = 8
+		print('----------------------------', self.x_train.shape)
+		self.model.fit(self.x_train, self.x_train,
+				 	epochs = n_epochs, batch_size = batch_size,
+					validation_split=0.05)
 		
 		
 		return self.model.get_weights(), len(self.x_train), {}
@@ -51,18 +53,22 @@ class ClientFlower(fl.client.NumPyClient):
 		self.model.set_weights(parameters)
 
 		X_pred = self.model.predict(self.x_train)
-		X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
+		print('+++++++++++++++++++++++++++++++++++++++++++', X_pred.shape, self.x_train.shape)
+		#X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
 
-		Xtrain = self.x_train.reshape(self.x_train.shape[0], self.x_train.shape[2])
-		loss = np.mean(np.abs(X_pred-Xtrain)) 
+		Xtrain = self.x_train
+		#Xtrain = self.x_train.reshape(self.x_train.shape[0], self.x_train.shape[2])
+		
+		loss = np.mean(np.mean(np.abs(X_pred-Xtrain), axis=1) )
+		
 
 
 		if config['server_round'] == self.anomaly_round:
 			X_pred = self.model.predict(self.x_test)
-			X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
-
-			Xtest = self.x_test.reshape(self.x_test.shape[0], self.x_test.shape[2])
-			loss = np.mean(np.abs(X_pred-Xtest)) 
+			#X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
+			Xtest = self.x_test
+			#Xtest = self.x_test.reshape(self.x_test.shape[0], self.x_test.shape[2])
+			loss = np.mean(np.mean(np.abs(X_pred-Xtest), axis=1)) 
 
 
 		filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"

@@ -15,6 +15,12 @@ from keras.layers import Input, Dropout, Dense, LSTM, TimeDistributed, RepeatVec
 from keras.models import Model
 from keras import regularizers
 
+def create_sequences(values, time_steps=64):
+    output = []
+    for i in range(len(values) - time_steps + 1):
+        output.append(values[i : (i + time_steps)])
+    return np.stack(output)
+
 def load_dataset(dataset_name, cid, n_clients):
 # load, average and merge sensor samples
 
@@ -51,30 +57,41 @@ def load_dataset(dataset_name, cid, n_clients):
 
     if dataset_name == 'SKAB': 
 
-        data = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv', sep = ';')
+        # data = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv', sep = ';')
 
-        data.index = pd.to_datetime(data['datetime'])
-        data.drop('datetime', axis = 1, inplace=True)
+        # data.index = pd.to_datetime(data['datetime'])
+        # data.drop('datetime', axis = 1, inplace=True)
 
 
-        size = len(data)
-        int_cid = int(cid)
+        # size = len(data)
+        # int_cid = int(cid)
 
-        train = data.reset_index().iloc[int(int_cid*size/(n_clients+1)) : int((int_cid+1)*size/(n_clients+1))].set_index('datetime').values
-        test =  data.reset_index().iloc[int((int_cid+1)*size/(n_clients+1)) : ].set_index('datetime').values
+        # train = data.reset_index().iloc[int(int_cid*size/(n_clients+1)) : int((int_cid+1)*size/(n_clients+1))].set_index('datetime').values
+        # test =  data.reset_index().iloc[int((int_cid+1)*size/(n_clients+1)) : ].set_index('datetime').values
 
-        #train = data.head(9000).values
-        #test = data.tail(1400).values
+        # #train = data.head(9000).values
+        # #test = data.tail(1400).values
 
         #for anomaly:
-        data = pd.read_csv('/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve2/0.csv', sep = ';')
+        data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/{cid}.csv', sep = ';')
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
+
+        train = data[data['anomaly'] == 0]
+        train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
+        train = train.values
+
         test = data[data['anomaly'] == 1]
         test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
         test = test.values
         
-        X_train = train.reshape(train.shape[0], 1, train.shape[1])
-        X_test = test.reshape(test.shape[0], 1, test.shape[1])
+        X_train = create_sequences(train)
+        X_test = create_sequences(test)
+
+        #X_train = train.reshape(train.shape[0], 1, train.shape[1])
+        #X_test = test.reshape(test.shape[0], 1, test.shape[1])]
+
+        #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2] ,1)
+        #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2] ,1)
 
     return X_train, X_test
