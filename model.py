@@ -34,6 +34,7 @@ def get_conv_model(X):
     model = keras.Sequential(
         [
             layers.Input(shape=(X.shape[1], X.shape[2])),#, X.shape[3])),
+            layers.BatchNormalization(),
             layers.Conv1D(
                 filters=32, kernel_size=3, padding="same", strides=1, activation="relu"
             ),

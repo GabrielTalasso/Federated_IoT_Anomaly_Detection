@@ -16,11 +16,11 @@ try:
 except FileNotFoundError:
 	pass
 
-n_clients = 10
-n_rounds = 12
+n_clients = 16
+n_rounds = 20
 dataset = 'SKAB'
 model_name = 'CNN'
-anomaly_round = 8
+anomaly_round = 15
 
 def funcao_cliente(cid):
 	return ClientFlower(int(cid), dataset = dataset, model_name=model_name, anomaly_round=anomaly_round, n_clients=n_clients)

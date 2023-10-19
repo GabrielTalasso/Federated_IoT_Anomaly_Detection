@@ -33,7 +33,7 @@ class ClientFlower(fl.client.NumPyClient):
 		return self.model.get_weights()
 
 	def fit(self, parameters, config):
-		
+
 		server_round = int(config["server_round"])
 		self.model.set_weights(parameters)
 
@@ -54,7 +54,7 @@ class ClientFlower(fl.client.NumPyClient):
 		
 		loss = np.mean(hist.history['loss'])
 		
-		filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"
+		filename = f"logs/{self.dataset}/{self.model_name}/train/loss.csv"
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with open(filename, 'a') as arquivo:
 			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
@@ -65,29 +65,16 @@ class ClientFlower(fl.client.NumPyClient):
 
 	def evaluate(self, parameters, config):
 		self.model.set_weights(parameters)
-
-		X_pred = self.model.predict(self.x_train)
-		print('+++++++++++++++++++++++++++++++++++++++++++', X_pred.shape, self.x_train.shape)
-		#X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
-
-		Xtrain = self.x_train
-		#Xtrain = self.x_train.reshape(self.x_train.shape[0], self.x_train.shape[2])
 		
-		loss = np.mean(np.mean(np.abs(X_pred-Xtrain), axis=1) )
-		loss = np.mean(((X_pred-Xtrain)**2))
+		self.model.compile(optimizer='adam', loss='mse')
+		loss = self.model.evaluate(self.x_train, self.x_train)
 
 		if config['server_round'] == self.anomaly_round:
-			X_pred = self.model.predict(self.x_test)
-			#X_pred = X_pred.reshape(X_pred.shape[0], X_pred.shape[2])
-			Xtest = self.x_test
-			#Xtest = self.x_test.reshape(self.x_test.shape[0], self.x_test.shape[2])
-			loss = np.mean(np.mean(np.abs(X_pred-Xtest), axis=1)) 
-			loss = np.mean(((X_pred-Xtest)**2))
+			loss = self.model.evaluate(self.x_test, self.x_test)
 
-
-		# filename = f"logs/{self.dataset}/{self.model_name}/loss.csv"
-		# os.makedirs(os.path.dirname(filename), exist_ok=True)
-		# with open(filename, 'a') as arquivo:
-		# 	arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
+		filename = f"logs/{self.dataset}/{self.model_name}/evaluate/loss.csv"
+		os.makedirs(os.path.dirname(filename), exist_ok=True)
+		with open(filename, 'a') as arquivo:
+			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
 
 		return loss, len(self.x_test), {"mean_loss": loss}
