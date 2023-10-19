@@ -57,22 +57,6 @@ def load_dataset(dataset_name, cid, n_clients):
 
     if dataset_name == 'SKAB': 
 
-        # data = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv', sep = ';')
-
-        # data.index = pd.to_datetime(data['datetime'])
-        # data.drop('datetime', axis = 1, inplace=True)
-
-
-        # size = len(data)
-        # int_cid = int(cid)
-
-        # train = data.reset_index().iloc[int(int_cid*size/(n_clients+1)) : int((int_cid+1)*size/(n_clients+1))].set_index('datetime').values
-        # test =  data.reset_index().iloc[int((int_cid+1)*size/(n_clients+1)) : ].set_index('datetime').values
-
-        # #train = data.head(9000).values
-        # #test = data.tail(1400).values
-
-        #for anomaly:
         data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/{cid}.csv', sep = ';')
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
@@ -87,9 +71,6 @@ def load_dataset(dataset_name, cid, n_clients):
         
         X_train = create_sequences(train)
         X_test = create_sequences(test)
-
-        #X_train = train.reshape(train.shape[0], 1, train.shape[1])
-        #X_test = test.reshape(test.shape[0], 1, test.shape[1])]
 
         #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2] ,1)
         #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2] ,1)

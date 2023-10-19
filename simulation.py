@@ -30,5 +30,4 @@ history = fl.simulation.start_simulation(client_fn=funcao_cliente,
 								strategy= FedServer(),
 								config=fl.server.ServerConfig(n_rounds))
 
-#with open('./results/history_simulation.pickle', 'wb') as file:
-#    pickle.dump(history, file, protocol=pickle.HIGHEST_PROTOCOL)
+

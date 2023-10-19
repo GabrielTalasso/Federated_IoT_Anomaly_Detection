@@ -43,14 +43,14 @@ def get_conv_model(X):
                 filters=16, kernel_size=3, padding="same", strides=1, activation="relu"
             ),
 
-            layers.Dropout(rate=0.2),
-            layers.Conv1D(
-                filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
-            ),
+            # layers.Dropout(rate=0.2),
+            # layers.Conv1D(
+            #     filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
+            # ),
 
-            layers.Conv1DTranspose(
-                filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
-            ),
+            # layers.Conv1DTranspose(
+            #     filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
+            # ),
 
             layers.Conv1DTranspose(
                 filters=16, kernel_size=3, padding="same", strides=1, activation="relu"
