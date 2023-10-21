@@ -42,24 +42,21 @@ class ClientFlower(fl.client.NumPyClient):
 			self.model.set_weights(parameters)
 
 		if server_round>1:
-			print('++++',len(parameters))
 			for i in range(int(self.decoder_len/2)):
 				lay = int((self.encoder_len/2)+i)
 				self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
 
 		self.model.compile(optimizer='adam', loss='mse')
+
 		n_epochs = 5
-		batch_size = 8
 
 		if config['server_round'] == self.anomaly_round:
 			hist = self.model.fit(self.x_test, self.x_test,
-				 	epochs = n_epochs, batch_size = batch_size,
+				 	epochs = n_epochs, batch_size = 8,
 					validation_split=0.05)
-			
-		#print('----------------------------', self.x_train.shape)
 		else:
 			hist = self.model.fit(self.x_train, self.x_train,
-						epochs = n_epochs, batch_size = batch_size,
+						epochs = n_epochs, batch_size = 8,
 						validation_split=0.05)
 		
 		loss = np.mean(hist.history['loss'])
@@ -69,27 +66,14 @@ class ClientFlower(fl.client.NumPyClient):
 		with open(filename, 'a') as arquivo:
 			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
 		
-		print('--',len(self.model.get_weights()))
-		#self.encoder_len = int((len(self.model.get_weights()) - 2) / 2)
-		#self.decoder_len = int(self.encoder_len + 2)
-		print(self.decoder_len, self.encoder_len)
-
 		return self.model.get_weights()[-self.decoder_len:], len(self.x_train), {}
 
 
 	def evaluate(self, parameters, config):
 
-		#print(self.model.layers)
-		#print(len(parameters))
-		#self.model.layers[self.encoder_len/2:].set_weights(parameters)
-
 		for i in range(int(self.decoder_len/2)):
 			lay = int((self.encoder_len/2)+i)
 			self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
-
-		#for i, weights in enumerate(parameters):
-		#	if self.model.layers[i+self.encoder_len].trainable:
-		#		self.model.layers[i+self.encoder_len].set_weights(weights, )
 
 		#self.model.set_weights(parameters)
 		
