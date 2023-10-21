@@ -17,10 +17,10 @@ except FileNotFoundError:
 	pass
 
 n_clients = 16
-n_rounds = 20
+n_rounds = 40
 dataset = 'SKAB'
 model_name = 'CNN'
-anomaly_round = 15
+anomaly_round = 35
 
 def funcao_cliente(cid):
 	return ClientFlower(int(cid), dataset = dataset, model_name=model_name, anomaly_round=anomaly_round, n_clients=n_clients)
@@ -30,4 +30,5 @@ history = fl.simulation.start_simulation(client_fn=funcao_cliente,
 								strategy= FedServer(),
 								config=fl.server.ServerConfig(n_rounds))
 
-
+#testar apenas compartilhando o decoder
+#testar outros modelos e outras técnicas
