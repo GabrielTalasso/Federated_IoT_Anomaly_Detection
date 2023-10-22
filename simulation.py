@@ -21,9 +21,14 @@ n_rounds = 40
 dataset = 'SKAB'
 model_name = 'CNN'
 anomaly_round = 35
+model_shared = 'Decoder'
+loss_type = 'mse'
+
 
 def funcao_cliente(cid):
-	return ClientFlower(int(cid), dataset = dataset, model_name=model_name, anomaly_round=anomaly_round, n_clients=n_clients)
+	return ClientFlower(int(cid), dataset = dataset,
+					model_name=model_name, anomaly_round=anomaly_round,
+					n_clients=n_clients, model_shared=model_shared, loss_type=loss_type)
 
 history = fl.simulation.start_simulation(client_fn=funcao_cliente, 
 								num_clients=n_clients, 

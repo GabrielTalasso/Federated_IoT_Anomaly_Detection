@@ -8,12 +8,14 @@ from load_dataset import load_dataset
 
 class ClientFlower(fl.client.NumPyClient):
 
-	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients):
+	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients, model_shared = 'All', loss_type = 'mse'):
 		self.cid = cid
 		self.dataset = dataset
 		self.model_name = model_name
 		self.anomaly_round = anomaly_round
 		self.n_clients = n_clients
+		self.model_shared = model_shared
+		self.loss_type = loss_type
 
 		self.x_train, self.x_test= self.load_data()
 		self.model = self.create_model(self.model_name)
@@ -42,11 +44,20 @@ class ClientFlower(fl.client.NumPyClient):
 			self.model.set_weights(parameters)
 
 		if server_round>1:
-			for i in range(int(self.decoder_len/2)):
-				lay = int((self.encoder_len/2)+i)
-				self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
+			if self.model_shared == 'All':
+				self.model.set_weights(parameters)
+			
+			elif self.model_shared == 'Decoder':
+				for i in range(int(self.decoder_len/2)):
+					lay = int((self.encoder_len/2)+i)
+					self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
 
-		self.model.compile(optimizer='adam', loss='mse')
+			elif self.model_shared == 'Encoder':
+				for i in range(int((self.encoder_len/2)-1)):
+					self.model.layers[i].set_weights([parameters[2*i], parameters[(2*i)+1]])
+
+
+		self.model.compile(optimizer='adam', loss=self.loss_type)
 
 		n_epochs = 5
 
@@ -61,29 +72,44 @@ class ClientFlower(fl.client.NumPyClient):
 		
 		loss = np.mean(hist.history['loss'])
 		
-		filename = f"logs/{self.dataset}/{self.model_name}/train/loss_decoder.csv"
+		filename = f"logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with open(filename, 'a') as arquivo:
 			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
+
+		if self.model_shared == 'All':
+			return self.model.get_weights(), len(self.x_train), {}
 		
-		return self.model.get_weights()[-self.decoder_len:], len(self.x_train), {}
+		elif self.model_shared == 'Decoder':
+			return self.model.get_weights()[-self.decoder_len:], len(self.x_train), {}
+		
+		elif self.model_shared == 'Encoder':
+			return self.model.get_weights()[:self.encoder_len], len(self.x_train), {}
 
 
 	def evaluate(self, parameters, config):
 
-		for i in range(int(self.decoder_len/2)):
-			lay = int((self.encoder_len/2)+i)
-			self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
+		if self.model_shared == 'All':
+				self.model.set_weights(parameters)
+			
+		elif self.model_shared == 'Decoder':
+			for i in range(int(self.decoder_len/2)):
+				lay = int((self.encoder_len/2)+i)
+				self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
+
+		elif self.model_shared == 'Encoder':
+			for i in range(int((self.encoder_len/2)-1)):
+				self.model.layers[i].set_weights([parameters[2*i], parameters[(2*i)+1]])
 
 		#self.model.set_weights(parameters)
 		
-		self.model.compile(optimizer='adam', loss='mse')
+		self.model.compile(optimizer='adam', loss=self.loss_type)
 		loss = self.model.evaluate(self.x_train, self.x_train)
 
 		if config['server_round'] == self.anomaly_round:
 			loss = self.model.evaluate(self.x_test, self.x_test)
 
-		filename = f"logs/{self.dataset}/{self.model_name}/evaluate/loss_decoder.csv"
+		filename = f"logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with open(filename, 'a') as arquivo:
 			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}\n")
