@@ -16,19 +16,22 @@ try:
 except FileNotFoundError:
 	pass
 
-n_clients = 16
-n_rounds = 40
+n_clients = 10
+n_rounds = 20
 dataset = 'SKAB'
 model_name = 'CNN'
-anomaly_round = 35
-model_shared = 'Decoder'
+anomaly_round = 15
+model_shared = 'All'
 loss_type = 'mse'
+
+clients_with_anomaly = [0, 1, 2]
 
 
 def funcao_cliente(cid):
 	return ClientFlower(int(cid), dataset = dataset,
 					model_name=model_name, anomaly_round=anomaly_round,
-					n_clients=n_clients, model_shared=model_shared, loss_type=loss_type)
+					n_clients=n_clients, model_shared=model_shared, loss_type=loss_type,
+					clients_with_anomaly = clients_with_anomaly)
 
 history = fl.simulation.start_simulation(client_fn=funcao_cliente, 
 								num_clients=n_clients, 
