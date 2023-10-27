@@ -23,7 +23,7 @@ def create_sequences(values, time_steps=64):
     return np.stack(output)
 
 
-def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60):
+def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60, global_data = False):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':
@@ -73,13 +73,15 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
         train = data.copy()
         train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
 
-        data_free = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv',  sep = ';')
-        data_free = data_free.drop('datetime', axis = 1)
-        data_free = data_free.iloc[cid*dataset_size*9: (cid+1)*dataset_size*9]
+        if global_data:
 
-        print('C', train.shape)
-        train = pd.concat([data_free, train], axis = 0)
-        print('CC', train.shape)
+            data_free = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv',  sep = ';')
+            data_free = data_free.drop('datetime', axis = 1)
+            data_free = data_free.iloc[cid*dataset_size*9: (cid+1)*dataset_size*9]
+
+            print('C', train.shape)
+            train = pd.concat([data_free, train], axis = 0)
+            print('CC', train.shape)
 
         if server_round is not None:
             train = train[:server_round * dataset_size]
