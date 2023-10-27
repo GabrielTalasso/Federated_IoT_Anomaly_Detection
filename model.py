@@ -34,35 +34,32 @@ def get_conv_model(X):
     model = keras.Sequential(
         [
             layers.Input(shape=(X.shape[1], X.shape[2])),#, X.shape[3])),
-            layers.Conv1D(
-                filters=32, kernel_size=3, padding="same", strides=1, activation="relu"
-            ),
             #layers.Dropout(rate=0.2),
             layers.Conv1D(
-                filters=16, kernel_size=3, padding="same", strides=1, activation="relu"
+                filters=32, kernel_size=7, padding="same", strides=1, activation="relu"
             ),
 
             # layers.Dropout(rate=0.2),
-            # layers.Conv1D(
-            #     filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
-            # ),
-
-            # layers.Conv1DTranspose(
-            #     filters=8, kernel_size=3, padding="same", strides=1, activation="relu"
-            # ),
+            layers.Conv1D(
+                filters=16, kernel_size=7, padding="same", strides=1, activation="relu"
+            ),
 
             layers.Conv1DTranspose(
-                filters=16, kernel_size=3, padding="same", strides=1, activation="relu"
+                filters=16, kernel_size=7, padding="same", strides=1, activation="relu"
             ),
-            #layers.Dropout(rate=0.2),
+
             layers.Conv1DTranspose(
-                filters=32, kernel_size=3, padding="same", strides=1, activation="relu"
+                filters=32, kernel_size=7, padding="same", strides=1, activation="relu"
             ),
+
             layers.Conv1DTranspose(
-                filters=1, kernel_size=3, padding="same"),
+                filters=1, kernel_size=7, padding="same"),
 
             #layers.Dense(X.shape[2])
         ]
         )
-    
+
+    model.load_weights('./checkpoints/my_checkpoint')
+
+
     return model

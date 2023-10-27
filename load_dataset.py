@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 #from sklearn.externals import joblib
 import seaborn as sns
 sns.set(color_codes=True)
@@ -21,7 +22,8 @@ def create_sequences(values, time_steps=64):
         output.append(values[i : (i + time_steps)])
     return np.stack(output)
 
-def load_dataset(dataset_name, cid, n_clients):
+
+def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':
@@ -58,19 +60,57 @@ def load_dataset(dataset_name, cid, n_clients):
     if dataset_name == 'SKAB': 
 
         data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/{cid}.csv', sep = ';')
+        scaler = StandardScaler()
+
+        if server_round is not None:
+            data = data.head(server_round * dataset_size)
+
+
         data.index = pd.to_datetime(data['datetime'])
         data.drop('datetime', axis = 1, inplace=True)
 
-        train = data[data['anomaly'] == 0]
+        #train = data[data['anomaly'] == 0]
+        train = data.copy()
         train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
-        train = train.values
 
-        test = data[data['anomaly'] == 1]
-        test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
+        data_free = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv',  sep = ';')
+        data_free = data_free.drop('datetime', axis = 1)
+        data_free = data_free.iloc[cid*dataset_size*9: (cid+1)*dataset_size*9]
+
+        print('C', train.shape)
+        train = pd.concat([data_free, train], axis = 0)
+        print('CC', train.shape)
+
+        if server_round is not None:
+            train = train[:server_round * dataset_size]
+
+        print('CCC', train.shape)
+
+        data = train.copy()
+        train = train.values
+        scaler.fit(train)
+        train = scaler.transform(train)
+
+        #test = data[data['anomaly'] == 1]
+        test = data.tail(dataset_size-1)
+        #test.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
         test = test.values
+        test = scaler.transform(test)
+
+        time_steps = dataset_size - 1
         
-        X_train = create_sequences(train)
-        X_test = create_sequences(test)
+        X_train = create_sequences(train, time_steps=time_steps)
+        X_test = create_sequences(test, time_steps=time_steps)
+
+        selected = []
+        for i in range(1,server_round+1):
+            selected.append((dataset_size-1) * (i-1) +1 )
+
+        print(server_round, 'B',selected)
+        print('A', X_train.shape)
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        X_train = X_train[selected]
+        print('AA', X_train.shape)
 
         #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2] ,1)
         #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2] ,1)

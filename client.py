@@ -9,7 +9,7 @@ from load_dataset import load_dataset
 class ClientFlower(fl.client.NumPyClient):
 
 	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients, model_shared = 'All', loss_type = 'mse',
-			  clients_with_anomaly = []):
+			  clients_with_anomaly = [], local_training = True):
 		self.cid = cid
 		self.dataset = dataset
 		self.model_name = model_name
@@ -18,22 +18,24 @@ class ClientFlower(fl.client.NumPyClient):
 		self.model_shared = model_shared
 		self.loss_type = loss_type
 		self.clients_with_anomaly = clients_with_anomaly
+		self.local_training  = local_training
 
-		self.x_train, self.x_test= self.load_data()
+		self.x_train, self.x_test= self.load_data(server_round=1)
 		self.model = self.create_model(self.model_name)
 
 		self.encoder_len = int((len(self.model.get_weights()) - 2) / 2)
 		self.decoder_len = int(self.encoder_len + 2)
 
-	def create_model(self,model_name):
+	def create_model(self, model_name):
 		if model_name == 'LSTM':
 			model = get_lstm_model(self.x_train)
 		if model_name == 'CNN':
 			model = get_conv_model(self.x_train)
 		return model
 
-	def load_data(self):
-		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid, n_clients = self.n_clients)
+	def load_data(self, server_round, dataset_size = 60):
+		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid, n_clients = self.n_clients,
+								 server_round = server_round, dataset_size = dataset_size)
 		return x_train, x_test
 
 	def get_parameters(self, config):
@@ -41,61 +43,66 @@ class ClientFlower(fl.client.NumPyClient):
 
 	def fit(self, parameters, config):
 
-		server_round = int(config["server_round"])
-		if server_round == 1:
-			self.model.set_weights(parameters)
+		self.x_train, self.x_test= self.load_data(server_round=int(config['server_round']))
 
-		if server_round>1:
-			if self.model_shared == 'All':
+		if self.local_training:
+
+			server_round = int(config["server_round"])
+			if server_round == 1:
 				self.model.set_weights(parameters)
-			
-			elif self.model_shared == 'Decoder':
-				for i in range(int(self.decoder_len/2)):
-					lay = int((self.encoder_len/2)+i)
-					self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
 
-			elif self.model_shared == 'Encoder':
-				for i in range(int((self.encoder_len/2)-1)):
-					self.model.layers[i].set_weights([parameters[2*i], parameters[(2*i)+1]])
+			if server_round>1:
+				if self.model_shared == 'All':
+					self.model.set_weights(parameters)
+				
+				elif self.model_shared == 'Decoder':
+					for i in range(int(self.decoder_len/2)):
+						lay = int((self.encoder_len/2)+i)
+						self.model.layers[lay].set_weights([parameters[2*i], parameters[(2*i)+1]])
+
+				elif self.model_shared == 'Encoder':
+					for i in range(int((self.encoder_len/2)-1)):
+						self.model.layers[i].set_weights([parameters[2*i], parameters[(2*i)+1]])
 
 
-		self.model.compile(optimizer='adam', loss=self.loss_type)
-
-		n_epochs = 5
-
-		true_anomaly = 0
-		if (config['server_round'] == self.anomaly_round) and (self.cid in self.clients_with_anomaly):
-			true_anomaly = 1
-			hist = self.model.fit(self.x_test, self.x_test,
-				 	epochs = n_epochs, batch_size = 8,
-					validation_split=0.05)
-		else:
-			hist = self.model.fit(self.x_train, self.x_train,
+			self.model.compile(optimizer='adam', loss=self.loss_type)
+			n_epochs = 10
+			true_anomaly = 0
+			if (config['server_round'] == self.anomaly_round) and (self.cid in self.clients_with_anomaly):
+				true_anomaly = 1
+				hist = self.model.fit(self.x_test, self.x_test,
 						epochs = n_epochs, batch_size = 8,
 						validation_split=0.05)
-			
-		loss = np.mean(hist.history['loss'])
-		
-		filename = f"teste/logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
-
-		#anomaly detect with threshold
-		diff = 0
-		anomaly = 0
-		if config['server_round'] > 2:
-			log_data = pd.read_csv(filename, names = ['cid', 'round', 'loss', 'diff', 'anomaly', 'true_anomaly'])
-			log_data = log_data[log_data['cid'] == self.cid]
-			last_loss = log_data['loss'].tail(1).values[0]
-			mean_diff = log_data['diff'].mean()
-
-			diff = abs(loss - last_loss )
+			else:
+				hist = self.model.fit(self.x_train, self.x_train,
+							epochs = n_epochs, batch_size = 8)#,validation_split=0.05)	
+				
+						
+			loss = np.mean(hist.history['loss'])		
+			filename = f"teste6/logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
+			#anomaly detect with threshold
+			diff = 0
 			anomaly = 0
-			if diff >= 2*mean_diff:
-				anomaly = 1
-	
+			if config['server_round'] > 2:
+				log_data = pd.read_csv(filename, names = ['cid', 'round', 'loss', 'diff', 'anomaly', 'true_anomaly'])
+				log_data = log_data[log_data['cid'] == self.cid]
+				last_loss = log_data['loss'].tail(1).values[0]
+				mean_diff = log_data['diff'].mean()
+				diff = abs(loss - last_loss )
+				anomaly = 0
+				if diff >= 4*mean_diff:
+					anomaly = 1
+			os.makedirs(os.path.dirname(filename), exist_ok=True)
+			with open(filename, 'a') as arquivo:
+				arquivo.write(f"{self.cid}, {config['server_round']}, {loss}, {diff}, {anomaly}, {true_anomaly}\n")
+			filename2 = f"teste6/logs/{self.dataset}/{self.model_name}/train/{self.cid}/loss_{self.loss_type}_{self.model_shared}.csv"
+			os.makedirs(os.path.dirname(filename2), exist_ok=True)
+			with open(filename2, 'a') as arquivo:
+				for l in hist.history['loss']:
+					arquivo.write(f"{server_round}, {self.cid}, {l}, {len(self.x_train)}, {len(self.x_test)} \n")
 
-		os.makedirs(os.path.dirname(filename), exist_ok=True)
-		with open(filename, 'a') as arquivo:
-			arquivo.write(f"{self.cid}, {config['server_round']}, {loss}, {diff}, {anomaly}, {true_anomaly}\n")
+		if not self.local_training:
+			self.model = get_conv_model(self.x_train)
 
 		if self.model_shared == 'All':
 			return self.model.get_weights(), len(self.x_train), {}
@@ -110,7 +117,7 @@ class ClientFlower(fl.client.NumPyClient):
 	def evaluate(self, parameters, config):
 
 		if self.model_shared == 'All':
-				self.model.set_weights(parameters)
+			self.model.set_weights(parameters)
 			
 		elif self.model_shared == 'Decoder':
 			for i in range(int(self.decoder_len/2)):
@@ -130,10 +137,11 @@ class ClientFlower(fl.client.NumPyClient):
 			loss = self.model.evaluate(self.x_test, self.x_test)
 			true_anomaly = 1
 		else:
-			loss = self.model.evaluate(self.x_train, self.x_train)
+			#loss = self.model.evaluate(self.x_train, self.x_train)
+			loss = self.model.evaluate(self.x_test, self.x_test)
 
 
-		filename = f"teste/logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
+		filename = f"teste6/logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
 
 		#anomaly detect with threshold
 		diff = 0
@@ -146,9 +154,11 @@ class ClientFlower(fl.client.NumPyClient):
 
 			diff = abs(loss - last_loss )
 			anomaly = 0
-			if diff >= 2*mean_diff:
+			if diff >= 4*mean_diff:
 				anomaly = 1
 
+
+		loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
 
 		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		with open(filename, 'a') as arquivo:

@@ -22,11 +22,8 @@ from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy.aggregate import aggregate, weighted_loss_avg
 from flwr.server.strategy import Strategy
 
-# flake8: noqa: E501
 class FedServer(fl.server.strategy.FedAvg):
-    """Configurable FedAvg strategy implementation."""
 
-    # pylint: disable=too-many-arguments,too-many-instance-attributes,line-too-long
     def __init__(self):      
         super().__init__()
         
