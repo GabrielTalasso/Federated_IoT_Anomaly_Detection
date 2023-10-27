@@ -17,14 +17,14 @@ except FileNotFoundError:
 	pass
 
 n_clients = 16
-n_rounds = 20
+n_rounds = 29
 dataset = 'SKAB'
 model_name = 'CNN'
 anomaly_round = 30
-model_shared = 'Decoder'
+model_shared = 'All'
 loss_type = 'mse'
 local_training = True
-global_data = False
+global_data = True
 
 clients_with_anomaly = list(range(n_clients))
 

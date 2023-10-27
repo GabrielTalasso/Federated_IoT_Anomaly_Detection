@@ -80,7 +80,7 @@ class ClientFlower(fl.client.NumPyClient):
 				
 						
 			loss = np.mean(hist.history['loss'])		
-			filename = f"teste8/logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
+			filename = f"teste10/logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
 			#anomaly detect with threshold
 			diff = 0
 			anomaly = 0
@@ -96,7 +96,7 @@ class ClientFlower(fl.client.NumPyClient):
 			os.makedirs(os.path.dirname(filename), exist_ok=True)
 			with open(filename, 'a') as arquivo:
 				arquivo.write(f"{self.cid}, {config['server_round']}, {loss}, {diff}, {anomaly}, {true_anomaly}\n")
-			filename2 = f"teste78/logs/{self.dataset}/{self.model_name}/train/{self.cid}/loss_{self.loss_type}_{self.model_shared}.csv"
+			filename2 = f"teste10/logs/{self.dataset}/{self.model_name}/train/{self.cid}/loss_{self.loss_type}_{self.model_shared}.csv"
 			os.makedirs(os.path.dirname(filename2), exist_ok=True)
 			with open(filename2, 'a') as arquivo:
 				for l in hist.history['loss']:
@@ -142,7 +142,7 @@ class ClientFlower(fl.client.NumPyClient):
 			loss = self.model.evaluate(self.x_test, self.x_test)
 
 
-		filename = f"teste8/logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
+		filename = f"teste10/logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
 
 		#anomaly detect with threshold
 		diff = 0
