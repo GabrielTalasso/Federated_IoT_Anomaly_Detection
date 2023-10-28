@@ -17,14 +17,15 @@ except FileNotFoundError:
 	pass
 
 n_clients = 16
-n_rounds = 29
+n_rounds = 20
 dataset = 'SKAB'
 model_name = 'CNN'
 anomaly_round = 30
 model_shared = 'All'
 loss_type = 'mse'
 local_training = True
-global_data = True
+global_data = False
+test_name = 'PCA2_w_local_training_wo_global_data'
 
 clients_with_anomaly = list(range(n_clients))
 
@@ -34,7 +35,8 @@ def funcao_cliente(cid):
 					model_name=model_name, anomaly_round=anomaly_round,
 					n_clients=n_clients, model_shared=model_shared, loss_type=loss_type,
 					clients_with_anomaly = clients_with_anomaly,
-					local_training = local_training, global_data=global_data)
+					local_training = local_training, global_data=global_data, 
+					test_name = test_name)
 
 history = fl.simulation.start_simulation(client_fn=funcao_cliente, 
 								num_clients=n_clients, 

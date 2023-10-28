@@ -59,7 +59,7 @@ def get_conv_model(X):
         ]
         )
 
-    #model.load_weights('./checkpoints/my_checkpoint')
+    #model.load_weights('./checkpoints/my_checkpoint_PCA')
 
 
     return model

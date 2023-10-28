@@ -9,7 +9,7 @@ from load_dataset import load_dataset
 class ClientFlower(fl.client.NumPyClient):
 
 	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients, model_shared = 'All', loss_type = 'mse',
-			  clients_with_anomaly = [], local_training = True, global_data = False):
+			  clients_with_anomaly = [], local_training = True, global_data = False, test_name = 'test'):
 		self.cid = cid
 		self.dataset = dataset
 		self.model_name = model_name
@@ -20,6 +20,7 @@ class ClientFlower(fl.client.NumPyClient):
 		self.clients_with_anomaly = clients_with_anomaly
 		self.local_training  = local_training
 		self.global_data = global_data
+		self.test_name = test_name
 
 		self.x_train, self.x_test= self.load_data(server_round=1)
 		self.model = self.create_model(self.model_name)
@@ -67,7 +68,7 @@ class ClientFlower(fl.client.NumPyClient):
 
 
 			self.model.compile(optimizer='adam', loss=self.loss_type)
-			n_epochs = 10
+			n_epochs = 100
 			true_anomaly = 0
 			if (config['server_round'] == self.anomaly_round) and (self.cid in self.clients_with_anomaly):
 				true_anomaly = 1
@@ -79,24 +80,34 @@ class ClientFlower(fl.client.NumPyClient):
 							epochs = n_epochs, batch_size = 8)#,validation_split=0.05)	
 				
 						
-			loss = np.mean(hist.history['loss'])		
-			filename = f"teste10/logs/{self.dataset}/{self.model_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
+			loss = hist.history['loss'][-1]		
+			filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
 			#anomaly detect with threshold
 			diff = 0
 			anomaly = 0
+			anomaly2 = 0
 			if config['server_round'] > 2:
-				log_data = pd.read_csv(filename, names = ['cid', 'round', 'loss', 'diff', 'anomaly', 'true_anomaly'])
+				log_data = pd.read_csv(filename, names = ['cid', 'round', 'loss', 'diff', 'anomaly', 'anomaly2', 'true_anomaly'])
 				log_data = log_data[log_data['cid'] == self.cid]
 				last_loss = log_data['loss'].tail(1).values[0]
-				mean_diff = log_data['diff'].mean()
-				diff = abs(loss - last_loss )
+				diff = hist.history['loss'][0] - last_loss #o quanto a loss cresce no inicio de um round
+
+				mean_diff = log_data['diff'].tail(3).mean() #media do crescimento nos ultimos 3 rounds
 				anomaly = 0
-				if diff >= 4*mean_diff:
+				if diff >= 1.5*mean_diff: #se cresceu mais que o esperado, é a nomalia
 					anomaly = 1
+
+				anomaly2 = 0
+				last_losses = log_data['loss'].tail(3).values
+				if (loss - last_losses[-1]) > 0:
+					if (last_losses[-1] - last_losses[-2]) > 0:
+						if (last_losses[-2] - last_losses[-3]) > 0:
+							anomaly2 = 1 #se a loss tem subido nos ultimos 3 rounds
+					
 			os.makedirs(os.path.dirname(filename), exist_ok=True)
 			with open(filename, 'a') as arquivo:
-				arquivo.write(f"{self.cid}, {config['server_round']}, {loss}, {diff}, {anomaly}, {true_anomaly}\n")
-			filename2 = f"teste10/logs/{self.dataset}/{self.model_name}/train/{self.cid}/loss_{self.loss_type}_{self.model_shared}.csv"
+				arquivo.write(f"{self.cid}, {config['server_round']}, {loss}, {diff}, {anomaly}, {anomaly2}, {true_anomaly}\n")
+			filename2 = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/train/{self.cid}/loss_{self.loss_type}_{self.model_shared}.csv"
 			os.makedirs(os.path.dirname(filename2), exist_ok=True)
 			with open(filename2, 'a') as arquivo:
 				for l in hist.history['loss']:
@@ -142,8 +153,8 @@ class ClientFlower(fl.client.NumPyClient):
 			loss = self.model.evaluate(self.x_test, self.x_test)
 
 
-		filename = f"teste10/logs/{self.dataset}/{self.model_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
-
+		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
+		os.makedirs(os.path.dirname(filename), exist_ok=True)
 		#anomaly detect with threshold
 		diff = 0
 		anomaly = 0
