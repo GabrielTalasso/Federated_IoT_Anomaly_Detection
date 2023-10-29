@@ -72,8 +72,7 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
 
         #train = data[data['anomaly'] == 0]
         train = data.copy()
-        if cid != 16:
-            train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
+        train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
 
         if global_data:
 
@@ -99,10 +98,10 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
 
         time_steps = dataset_size - 1
 
-
-        pca = PCA(n_components=n_components)
-        train = pca.fit_transform(train)
-        test = pca.transform(test)
+        if n_components is not None:
+            pca = PCA(n_components=n_components)
+            train = pca.fit_transform(train)
+            test = pca.transform(test)
         
         X_train = create_sequences(train, time_steps=time_steps)
         X_test = create_sequences(test, time_steps=time_steps)

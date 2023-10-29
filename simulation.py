@@ -25,9 +25,8 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'all_PCA2_w_local_training_wo_global_data'
-n_components = 2
-
+test_name = 'all_w_local_training_wo_global_data'
+n_components = None
 clients_with_anomaly = list(range(n_clients))
 
 def funcao_cliente(cid):
