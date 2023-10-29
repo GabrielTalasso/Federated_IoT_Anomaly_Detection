@@ -10,7 +10,7 @@ from client_utils import make_logs
 class ClientFlower(fl.client.NumPyClient):
 
 	def __init__(self, cid, dataset, model_name, anomaly_round, n_clients, model_shared = 'All', loss_type = 'mse',
-			  clients_with_anomaly = [], local_training = True, global_data = False, test_name = 'test'):
+			  clients_with_anomaly = [], local_training = True, global_data = False, test_name = 'test', n_components = 8):
 		self.cid = cid
 		self.dataset = dataset
 		self.model_name = model_name
@@ -22,6 +22,7 @@ class ClientFlower(fl.client.NumPyClient):
 		self.local_training  = local_training
 		self.global_data = global_data
 		self.test_name = test_name
+		self.n_components = n_components
 
 		self.x_train, self.x_test= self.load_data(server_round=1)
 		self.model = self.create_model(self.model_name)
@@ -38,15 +39,19 @@ class ClientFlower(fl.client.NumPyClient):
 
 	def load_data(self, server_round, dataset_size = 60):
 		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid, n_clients = self.n_clients,
-								 server_round = server_round, dataset_size = dataset_size, global_data=self.global_data)
+								 server_round = server_round, dataset_size = dataset_size, global_data=self.global_data, 
+								 n_components=self.n_components)
 		return x_train, x_test
 
-	def get_parameters(self):
+	def get_parameters(self, config):
 		return self.model.get_weights()
 	
-	def set_parameters(self, config, parameters):
+	def set_parameters(self, config, parameters, type = 'train'):
 
 		server_round = int(config["server_round"])
+		if type == 'eval':
+			server_round +=1
+
 		if server_round == 1:
 			self.model.set_weights(parameters)
 
@@ -62,8 +67,6 @@ class ClientFlower(fl.client.NumPyClient):
 			elif self.model_shared == 'Encoder':
 				for i in range(int((self.encoder_len/2)-1)):
 					self.model.layers[i].set_weights([parameters[2*i], parameters[(2*i)+1]])
-
-		return self.model.get_weights()
 
 	def fit(self, parameters, config):
 
@@ -83,8 +86,7 @@ class ClientFlower(fl.client.NumPyClient):
 
 			n_epochs = 100
 			hist = self.model.fit(self.x_train, self.x_train,
-					epochs = n_epochs, batch_size = 32,
-					validation_split=0.05)
+					epochs = n_epochs, batch_size = 32)
 				
 			loss = hist.history['loss'][-1]		
 			filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
@@ -104,7 +106,7 @@ class ClientFlower(fl.client.NumPyClient):
 
 	def evaluate(self, parameters, config):
 
-		self.set_parameters(config = config, parameters=parameters)
+		self.set_parameters(config = config, parameters=parameters, type='eval')
 		self.model.compile(optimizer='adam', loss=self.loss_type)
 
 		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"

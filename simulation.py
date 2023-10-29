@@ -25,7 +25,8 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'all_w_local_training_wo_global_data'
+test_name = 'all_PCA2_w_local_training_wo_global_data'
+n_components = 2
 
 clients_with_anomaly = list(range(n_clients))
 
@@ -35,7 +36,7 @@ def funcao_cliente(cid):
 					n_clients=n_clients, model_shared=model_shared, loss_type=loss_type,
 					clients_with_anomaly = clients_with_anomaly,
 					local_training = local_training, global_data=global_data, 
-					test_name = test_name)
+					test_name = test_name, n_components = n_components)
 
 history = fl.simulation.start_simulation(client_fn=funcao_cliente, 
 								num_clients=n_clients, 

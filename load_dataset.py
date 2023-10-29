@@ -24,7 +24,7 @@ def create_sequences(values, time_steps=64):
     return np.stack(output)
 
 
-def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60, global_data = False):
+def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60, global_data = False, n_components = 8):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':
@@ -81,14 +81,10 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
             data_free = data_free.drop('datetime', axis = 1)
             data_free = data_free.iloc[cid*dataset_size*9: (cid+1)*dataset_size*9]
 
-            print('C', train.shape)
             train = pd.concat([data_free, train], axis = 0)
-            print('CC', train.shape)
 
         if server_round is not None:
             train = train[:server_round * dataset_size]
-
-        print('CCC', train.shape)
 
         data = train.copy()
         train = train.values
@@ -104,9 +100,9 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
         time_steps = dataset_size - 1
 
 
-        #pca = PCA(n_components=2)
-        #train = pca.fit_transform(train)
-        #test = pca.transform(test)
+        pca = PCA(n_components=n_components)
+        train = pca.fit_transform(train)
+        test = pca.transform(test)
         
         X_train = create_sequences(train, time_steps=time_steps)
         X_test = create_sequences(test, time_steps=time_steps)
@@ -115,11 +111,7 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
         for i in range(1,server_round+1):
             selected.append((dataset_size-1) * (i-1) +1 )
 
-        print(server_round, 'B',selected)
-        print('A', X_train.shape)
-        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
         X_train = X_train[selected]
-        print('AA', X_train.shape)
 
         #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2] ,1)
         #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2] ,1)
