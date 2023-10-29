@@ -60,7 +60,7 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
 
     if dataset_name == 'SKAB': 
 
-        data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/valve1/{cid}.csv', sep = ';')
+        data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/federated_data/{cid}.csv', sep = ';')
         scaler = StandardScaler()
 
         if server_round is not None:
@@ -104,9 +104,9 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
         time_steps = dataset_size - 1
 
 
-        pca = PCA(n_components=2)
-        train = pca.fit_transform(train)
-        test = pca.transform(test)
+        #pca = PCA(n_components=2)
+        #train = pca.fit_transform(train)
+        #test = pca.transform(test)
         
         X_train = create_sequences(train, time_steps=time_steps)
         X_test = create_sequences(test, time_steps=time_steps)

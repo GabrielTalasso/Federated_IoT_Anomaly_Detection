@@ -16,7 +16,7 @@ try:
 except FileNotFoundError:
 	pass
 
-n_clients = 16
+n_clients = 34
 n_rounds = 20
 dataset = 'SKAB'
 model_name = 'CNN'
@@ -25,10 +25,9 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'PCA2_w_local_training_wo_global_data'
+test_name = 'all_w_local_training_wo_global_data'
 
 clients_with_anomaly = list(range(n_clients))
-
 
 def funcao_cliente(cid):
 	return ClientFlower(int(cid), dataset = dataset,
