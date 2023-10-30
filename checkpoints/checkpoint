@@ -1,2 +1,2 @@
-model_checkpoint_path: "my_checkpoint_PCA"
-all_model_checkpoint_paths: "my_checkpoint_PCA"
+model_checkpoint_path: "my_checkpoint_certo"
+all_model_checkpoint_paths: "my_checkpoint_certo"
