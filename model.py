@@ -7,22 +7,17 @@ import numpy as np
 
 
 def get_lstm_model(X):
-    inputs = Input(shape=(X.shape[1], X.shape[2], 1))
+    inputs = Input(shape=(X.shape[1], X.shape[2]))
 
-    L1 = LSTM(8, activation='relu', return_sequences=True, 
-              kernel_regularizer=regularizers.l2(0.00),
-              stateful=True)(inputs)
+    L1 = LSTM(100, activation='relu')(inputs)
     
-    L2 = LSTM(4, activation='relu', return_sequences=False,
-              stateful=True)(L1)
+    #L2 = LSTM(16, activation='relu', return_sequences=False)(L1)
     
-    L3 = RepeatVector(X.shape[1])(L2)
+    L3 = RepeatVector(X.shape[1])(L1)
 
-    L4 = LSTM(4, activation='relu', return_sequences=True,
-              stateful=True)(L3)
+    #L4 = LSTM(16, activation='relu', return_sequences=True)(L3)
     
-    L5 = LSTM(8, activation='relu', return_sequences=True,
-              stateful=True)(L4)
+    L5 = LSTM(100, activation='relu', return_sequences=True)(L3)
     
     output = TimeDistributed(Dense(X.shape[2]))(L5)  
 
