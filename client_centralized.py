@@ -74,14 +74,16 @@ class CentralizedClientFlower(fl.client.NumPyClient):
 		for c in range(34):
 			cid = c
 			print(cid)
-			self.x_train, self.x_test= self.load_data(server_round=int(config['server_round']), cid = cid)
+			if self.cid == 0:
+				self.x_train, self.x_test= self.load_data(server_round=int(config['server_round']), cid = cid)
 			#self.set_parameters(config = config, parameters=parameters)
 			self.model.compile(optimizer='adam', loss=self.loss_type)
 
 			loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
 
 			filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate_before_train/loss_{self.loss_type}_{self.model_shared}.csv"
-			make_logs(filename, config, cid = cid, loss = loss)
+			if self.cid == 0:
+				make_logs(filename, config, cid = cid, loss = loss)
 
 			if self.local_training:
 
@@ -92,9 +94,10 @@ class CentralizedClientFlower(fl.client.NumPyClient):
 				hist = self.model.fit(self.x_train, self.x_train,
 						epochs = n_epochs, batch_size = 32)
 					
-				loss = hist.history['loss'][-1]		
+				loss = hist.history['loss'][-1]
 				filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
-				make_logs(filename, config, cid = cid, loss = loss)
+				if self.cid == 0:
+					make_logs(filename, config, cid = cid, loss = loss)
 
 			if not self.local_training:
 				self.model = get_conv_model(self.x_train)
@@ -114,9 +117,12 @@ class CentralizedClientFlower(fl.client.NumPyClient):
 			cid = c
 			#self.set_parameters(config = config, parameters=parameters, type='eval')
 			self.model.compile(optimizer='adam', loss=self.loss_type)
-
+			if self.cid == 0:
+				self.x_train, self.x_test= self.load_data(server_round=int(config['server_round']), cid = cid)
 			filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
+			
 			loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
-			make_logs(filename, config, cid = cid, loss = loss)
+			if self.cid == 0:
+				make_logs(filename, config, cid = cid, loss = loss)
 
 		return loss, len(self.x_test), {"mean_loss": loss}

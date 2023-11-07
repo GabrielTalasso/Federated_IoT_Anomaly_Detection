@@ -18,9 +18,9 @@ except FileNotFoundError:
 	pass
 
 
-centralized = True
+centralized = False
 
-n_clients = 1
+n_clients = 2
 n_rounds = 20
 dataset = 'SKAB'
 model_name = 'CNN'
@@ -29,7 +29,7 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'centralized_all_w_local_training_wo_global_data'
+test_name = 'all_w_local_training_wo_global_data'
 n_components = None
 clients_with_anomaly = list(range(n_clients))
 
