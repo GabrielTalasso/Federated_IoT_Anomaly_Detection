@@ -85,12 +85,12 @@ class CentralizedClientFlower(fl.client.NumPyClient):
 			if self.cid == 0:
 				make_logs(filename, config, cid = cid, loss = loss)
 
-			if self.local_training:
+			if self.local_training and cid in list(range(13)):
 
 				#self.set_parameters(config = config, parameters=parameters )
 				self.model.compile(optimizer='adam', loss=self.loss_type)
 
-				n_epochs = 100
+				n_epochs = 5
 				hist = self.model.fit(self.x_train, self.x_train,
 						epochs = n_epochs, batch_size = 32)
 					

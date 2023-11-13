@@ -24,7 +24,7 @@ def create_sequences(values, time_steps=64):
     return np.stack(output)
 
 
-def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 60, global_data = False, n_components = 8):
+def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 30, global_data = False, n_components = 8):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':

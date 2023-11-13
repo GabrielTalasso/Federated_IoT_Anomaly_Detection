@@ -29,7 +29,7 @@ def make_logs(filename, config, cid, loss):
         if (loss - last_losses[-1]) > 0:
             if (last_losses[-1] - last_losses[-2]) > 0:
                 #if (last_losses[-2] - last_losses[-3]) > 0:
-                anomaly2 = 1 #se a loss tem subido nos ultimos 3 rounds
+                anomaly2 = 1 #se a loss tem subido nos ultimos 2 rounds
 
 
     with open(filename, 'a') as arquivo:
