@@ -20,8 +20,8 @@ except FileNotFoundError:
 
 centralized = False
 
-n_clients = 34
-n_rounds = 20
+n_clients = 30
+n_rounds = 40
 dataset = 'SKAB'
 model_name = 'CNN'
 anomaly_round = 30
@@ -29,7 +29,7 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = '1_epochs_descentralized_60s'
+test_name = '50_epochs_FL_30s_30c'
 n_components = None
 clients_with_anomaly = list(range(n_clients))
 
