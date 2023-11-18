@@ -24,7 +24,7 @@ def create_sequences(values, time_steps=64):
     return np.stack(output)
 
 
-def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 30, global_data = False, n_components = 8):
+def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size = 30, global_data = False, n_components = 8, clients_with_anomaly = []):
 # load, average and merge sensor samples
 
     if dataset_name == 'bearing':
@@ -61,6 +61,10 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
     if dataset_name == 'SKAB': 
 
         data = pd.read_csv(f'/home/gabrieltalasso/IoT_Anomaly_Detection/data/SKAB/federated_data/{cid}.csv', sep = ';')
+        if cid in clients_with_anomaly:
+            data = data[300:-300]
+
+
         scaler = StandardScaler()
 
         if server_round is not None:
@@ -73,14 +77,6 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
         #train = data[data['anomaly'] == 0]
         train = data.copy()
         train.drop(['anomaly', 'changepoint'], axis = 1, inplace = True)
-
-        if global_data:
-
-            data_free = pd.read_csv('data/SKAB/anomaly-free/anomaly-free.csv',  sep = ';')
-            data_free = data_free.drop('datetime', axis = 1)
-            data_free = data_free.iloc[cid*dataset_size*9: (cid+1)*dataset_size*9]
-
-            train = pd.concat([data_free, train], axis = 0)
 
         if server_round is not None:
             train = train[:server_round * dataset_size]
@@ -114,5 +110,48 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
 
         #X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2] ,1)
         #X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2] ,1)
+
+    if dataset_name == 'synthetic': 
+
+        if cid in clients_with_anomaly:
+            data = pd.read_csv(f'data/generated_data/anomaly2_client_{cid}.csv')
+
+        else:
+            data = pd.read_csv(f'data/generated_data/normal_client_{cid}.csv')
+            data['anomaly'] = 0
+
+        data = data.drop('Unnamed: 0', axis = 1)
+
+        scaler = StandardScaler()
+        if server_round is not None:
+            data = data.head(server_round * dataset_size)
+
+        #train = data[data['anomaly'] == 0]
+        train = data.copy()
+        train.drop(['anomaly'], axis = 1, inplace = True)
+
+        if server_round is not None:
+            train = train[:server_round * dataset_size]
+
+        data = train.copy()
+        train = train.values
+        scaler.fit(train)
+        train = scaler.transform(train)
+
+        test = data.tail(dataset_size-1)
+        test = test.values
+        test = scaler.transform(test)
+
+        time_steps = dataset_size - 1
+        
+        X_train = create_sequences(train, time_steps=time_steps)
+        X_test = create_sequences(test, time_steps=time_steps)
+
+        selected = []
+        for i in range(1,server_round+1):
+            selected.append((dataset_size-1) * (i-1) +1 )
+
+        X_train = X_train[selected]
+
 
     return X_train, X_test

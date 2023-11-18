@@ -37,10 +37,10 @@ class ClientFlower(fl.client.NumPyClient):
 			model = get_conv_model(self.x_train)
 		return model
 
-	def load_data(self, server_round, dataset_size = 30):
+	def load_data(self, server_round, dataset_size = 60):
 		x_train, x_test = load_dataset(dataset_name=self.dataset, cid = self.cid, n_clients = self.n_clients,
 								 server_round = server_round, dataset_size = dataset_size, global_data=self.global_data, 
-								 n_components=self.n_components)
+								 n_components=self.n_components, clients_with_anomaly = self.clients_with_anomaly)
 		return x_train, x_test
 
 	def get_parameters(self, config):
@@ -77,23 +77,26 @@ class ClientFlower(fl.client.NumPyClient):
 		loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
 
 		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate_before_train/loss_{self.loss_type}_{self.model_shared}.csv"
-		make_logs(filename, config, cid = self.cid, loss = loss)
+		a = make_logs(filename, config, cid = self.cid, loss = loss)
+
+		if a >=1:
+			self.local_training = False
+			print(f'+++++++++++++++++ Client {self.cid} will not train')
+		else:
+			self.local_training = True
 
 		if self.local_training:# and self.cid in list(range(13)): ##### apenas alguns clientes treinando
 
 			self.set_parameters(config = config, parameters=parameters )
 			self.model.compile(optimizer='adam', loss=self.loss_type)
 
-			n_epochs = 50
+			n_epochs = 5
 			hist = self.model.fit(self.x_train, self.x_train,
 					epochs = n_epochs, batch_size = 32)
 				
 			loss = hist.history['loss'][-1]		
 			filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/train/loss_{self.loss_type}_{self.model_shared}.csv"
-			make_logs(filename, config, cid = self.cid, loss = loss)
-
-		if not self.local_training:
-			self.model = get_conv_model(self.x_train)
+			a = make_logs(filename, config, cid = self.cid, loss = loss)
 
 		if self.model_shared == 'All':
 			return self.model.get_weights(), len(self.x_train), {}
@@ -111,6 +114,6 @@ class ClientFlower(fl.client.NumPyClient):
 
 		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"
 		loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
-		make_logs(filename, config, cid = self.cid, loss = loss)
+		a = make_logs(filename, config, cid = self.cid, loss = loss)
 
 		return loss, len(self.x_test), {"mean_loss": loss}
