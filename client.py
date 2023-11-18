@@ -79,11 +79,11 @@ class ClientFlower(fl.client.NumPyClient):
 		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate_before_train/loss_{self.loss_type}_{self.model_shared}.csv"
 		a = make_logs(filename, config, cid = self.cid, loss = loss)
 
-		if a >=1:
-			self.local_training = False
-			print(f'+++++++++++++++++ Client {self.cid} will not train')
-		else:
-			self.local_training = True
+		#if a >=1:
+		#	self.local_training = False
+		#	print(f'+++++++++++++++++ Client {self.cid} will not train')
+		#else:
+		#	self.local_training = True
 
 		if self.local_training:# and self.cid in list(range(13)): ##### apenas alguns clientes treinando
 

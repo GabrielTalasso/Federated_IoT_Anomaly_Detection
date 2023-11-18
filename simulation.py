@@ -20,7 +20,7 @@ except FileNotFoundError:
 
 centralized = False
 
-n_clients = 15
+n_clients = 30
 n_rounds = 20
 dataset = 'synthetic'
 model_name = 'CNN'
@@ -29,7 +29,7 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'teste'
+test_name = 'anomaly1_FL_5epochs'
 n_components = None
 clients_with_anomaly = [0,1,2,3,4]
 

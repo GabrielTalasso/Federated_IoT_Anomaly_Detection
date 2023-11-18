@@ -114,7 +114,7 @@ def load_dataset(dataset_name, cid, n_clients, server_round = None, dataset_size
     if dataset_name == 'synthetic': 
 
         if cid in clients_with_anomaly:
-            data = pd.read_csv(f'data/generated_data/anomaly2_client_{cid}.csv')
+            data = pd.read_csv(f'data/generated_data/anomaly1_client_{cid}.csv')
 
         else:
             data = pd.read_csv(f'data/generated_data/normal_client_{cid}.csv')

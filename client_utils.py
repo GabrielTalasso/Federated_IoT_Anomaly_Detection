@@ -60,7 +60,8 @@ def make_logs(filename, config, cid, loss):
                     anomaly2 = 1 
 
         except IndexError:
-            print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa', cid)
+            pass
+            #print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa', cid)
 
 
     with open(filename, 'a') as arquivo:
