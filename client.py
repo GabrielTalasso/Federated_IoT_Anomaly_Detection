@@ -71,7 +71,7 @@ class ClientFlower(fl.client.NumPyClient):
 	def fit(self, parameters, config):
 
 		self.x_train, self.x_test= self.load_data(server_round=int(config['server_round']))
-		self.set_parameters(config = config, parameters=parameters)
+		#self.set_parameters(config = config, parameters=parameters)
 		self.model.compile(optimizer='adam', loss=self.loss_type)
 
 		loss = pd.Series(np.sum(np.mean(np.abs(self.x_test - self.model.predict(self.x_test)), axis=1), axis=1)).values[0]
@@ -87,7 +87,7 @@ class ClientFlower(fl.client.NumPyClient):
 
 		if self.local_training:# and self.cid in list(range(13)): ##### apenas alguns clientes treinando
 
-			self.set_parameters(config = config, parameters=parameters )
+			#self.set_parameters(config = config, parameters=parameters )
 			self.model.compile(optimizer='adam', loss=self.loss_type)
 
 			n_epochs = 5
@@ -109,7 +109,7 @@ class ClientFlower(fl.client.NumPyClient):
 
 	def evaluate(self, parameters, config):
 
-		self.set_parameters(config = config, parameters=parameters, type='eval')
+		#self.set_parameters(config = config, parameters=parameters, type='eval')
 		self.model.compile(optimizer='adam', loss=self.loss_type)
 
 		filename = f"logs/{self.dataset}/{self.model_name}/{self.test_name}/evaluate/loss_{self.loss_type}_{self.model_shared}.csv"

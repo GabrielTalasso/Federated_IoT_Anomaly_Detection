@@ -29,7 +29,7 @@ model_shared = 'All'
 loss_type = 'mse'
 local_training = True
 global_data = False
-test_name = 'anomaly1_FL_5epochs'
+test_name = 'anomaly6_descentralized_5epochs'
 n_components = None
 clients_with_anomaly = [0,1,2,3,4]
 
